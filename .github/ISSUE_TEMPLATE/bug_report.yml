@@ -1,0 +1,39 @@
+name: Bug report
+description: Something does not work as documented.
+labels: [bug]
+body:
+  - type: markdown
+    attributes:
+      value: Thanks for taking the time to report this. Please remove any secrets or private data from logs.
+  - type: textarea
+    id: what
+    attributes:
+      label: What happened?
+      description: What did you do, what did you expect, and what happened instead?
+    validations:
+      required: true
+  - type: textarea
+    id: repro
+    attributes:
+      label: Steps to reproduce
+      description: Commands, smoke YAML, and API calls. A reproduction against `lora-switchboard fake-vllm` is ideal.
+      render: shell
+    validations:
+      required: true
+  - type: textarea
+    id: logs
+    attributes:
+      label: Relevant logs / `lora-switchboard history` output
+      render: text
+  - type: input
+    id: version
+    attributes:
+      label: lora-switchboard version
+      placeholder: "0.1.0"
+    validations:
+      required: true
+  - type: input
+    id: vllm
+    attributes:
+      label: vLLM version (or "fake-vllm")
+      placeholder: "0.x.y"

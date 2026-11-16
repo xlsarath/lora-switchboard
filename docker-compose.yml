@@ -1,0 +1,63 @@
+# Quickstart: switchboard + a fake vLLM (no GPU needed).
+#
+#   docker compose up -d --build
+#   ./examples/demo.sh
+#
+# To use a real vLLM on a GPU host, comment out `fake-vllm`, uncomment `vllm`
+# below and point LSB_VLLM_URL at it.
+
+services:
+  switchboard:
+    build: .
+    image: lora-switchboard:local
+    ports:
+      - "8000:8000"
+    environment:
+      LSB_VLLM_URL: http://fake-vllm:8001
+      # LSB_VLLM_URL: http://vllm:8001
+      LSB_DRAIN_DELAY_S: "5"
+      LSB_KEEP_LOADED: "2"
+      LSB_LOG_LEVEL: INFO
+      # LSB_ADMIN_TOKEN: change-me   # protects /admin; the CLI reads LSB_ADMIN_TOKEN too
+    volumes:
+      - switchboard-data:/data
+    depends_on:
+      fake-vllm:
+        condition: service_healthy
+
+  fake-vllm:
+    image: lora-switchboard:local
+    entrypoint: ["lora-switchboard"]
+    command: ["fake-vllm", "--host", "0.0.0.0", "--port", "8001", "--load-delay", "0.4"]
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8001/health', timeout=2)"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+  # vllm:
+  #   image: vllm/vllm-openai:latest        # pin a version you have tested
+  #   command:
+  #     - --model=Qwen/Qwen2.5-7B-Instruct
+  #     - --enable-lora
+  #     - --max-loras=4                     # adapters resident on the GPU at once
+  #     - --max-lora-rank=64                # >= the largest rank you will load
+  #     - --port=8001
+  #   environment:
+  #     VLLM_ALLOW_RUNTIME_LORA_UPDATING: "True"
+  #     HF_TOKEN: ${HF_TOKEN:-}             # only for gated base models
+  #   volumes:
+  #     - ./adapters:/adapters:ro           # deploy with --path /adapters/<name>/<version>
+  #     - hf-cache:/root/.cache/huggingface
+  #   ipc: host
+  #   deploy:
+  #     resources:
+  #       reservations:
+  #         devices:
+  #           - driver: nvidia
+  #             count: 1
+  #             capabilities: [gpu]
+
+volumes:
+  switchboard-data:
+  # hf-cache:
