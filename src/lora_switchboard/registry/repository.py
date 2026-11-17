@@ -55,6 +55,8 @@ class Registry:
         self._path = str(path)
         self._lock = threading.RLock()
         self._depth = 0
+        if self._path != ":memory:":
+            Path(self._path).parent.mkdir(parents=True, exist_ok=True)
         self._conn = sqlite3.connect(
             self._path, isolation_level=None, check_same_thread=False, timeout=10.0
         )
