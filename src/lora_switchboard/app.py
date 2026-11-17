@@ -39,6 +39,7 @@ def create_app(
     async def lifespan(app: FastAPI) -> AsyncIterator[None]:
         metrics = Metrics()
         registry = Registry(settings.db_path)
+        log.info("registry opened", extra={"db_path": str(settings.db_path)})
         vllm = VLLMClient(
             settings.vllm_url,
             api_key=settings.vllm_api_key.get_secret_value() if settings.vllm_api_key else None,

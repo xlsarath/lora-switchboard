@@ -100,3 +100,19 @@ def test_schema_survives_reopen(tmp_path: Path) -> None:
     first.close()
     again = Registry(tmp_path / "r.db")
     assert again.get_adapter("support-bot").description == "customer support tone"  # type: ignore[union-attr]
+
+
+def test_registry_creates_missing_parent_directory(tmp_path: Path) -> None:
+    nested = tmp_path / "deep" / "nested" / "dir"
+    registry = Registry(nested / "r.db")
+    adapter = registry.create_adapter("support-bot", BASE, None)
+    assert adapter.name == "support-bot"
+    assert (nested / "r.db").exists()
+    registry.close()
+
+
+def test_registry_accepts_memory_path() -> None:
+    registry = Registry(":memory:")
+    adapter = registry.create_adapter("support-bot", BASE, None)
+    assert adapter.name == "support-bot"
+    registry.close()
